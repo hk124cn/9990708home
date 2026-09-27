@@ -1,0 +1,39 @@
+# =============================================================================
+# 行尾统一为 LF
+# -----------------------------------------------------------------------------
+# 为什么需要这个文件：
+#
+# Windows 上的 git 默认 core.autocrlf=true —— 提交时把 CRLF 转成 LF，
+# 检出时再把 LF 转回 CRLF。但这个站的 HTML 是 `node tools/build.mjs`
+# 生成的，Node 写出来的是 LF。于是每次构建完，工作区是 LF、
+# 索引里是 CRLF，git 就把【全部 268 个生成页面】都标成「已修改」——
+# 哪怕内容一个字符都没变。
+#
+# 后果不是报错，是更糟的东西：git diff 永远是满屏噪音，
+# 你再也看不出这次构建到底真的改了哪几个页面。
+# 数据改一个国家，diff 里出现 268 个文件，等于没有 diff。
+#
+# 把行尾钉死成 LF 之后，构建产物的 diff 就只剩真正变化的部分。
+#
+# 另外 _redirects / _headers 这两个 Cloudflare 配置文件尤其要 LF：
+# 它们是按行解析的，CRLF 在某些解析器下会把 \r 当成路径的一部分。
+# 目前 Cloudflare 能容忍，但没必要赌。
+# =============================================================================
+
+# 默认：所有文本文件在仓库里一律存 LF，检出时也保持 LF
+* text=auto eol=lf
+
+# Cloudflare Pages 的配置文件，显式声明（按行解析，不能有 \r）
+_redirects   text eol=lf
+_headers     text eol=lf
+robots.txt   text eol=lf
+ads.txt      text eol=lf
+
+# 明确标为二进制，避免 git 尝试做行尾转换而损坏文件
+*.png        binary
+*.jpg        binary
+*.jpeg       binary
+*.gif        binary
+*.ico        binary
+*.woff       binary
+*.woff2      binary

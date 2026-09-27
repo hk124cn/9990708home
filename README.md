@@ -1,0 +1,55 @@
+# home —— 9990708.xyz 的域名首页
+
+一个 HTML 文件的站，职责只有两件：
+
+1. **给域名根一个正常响应。** 之前裸域名没有任何记录，Googlebot 反复去敲、每次都记一条
+   DNS 错误（2026-09-25 在 Search Console 实测：整个域名下 4 次抓取，100% 是 DNS 错误）。
+2. **把三个子域链出去。** 子域之间 SEO 权重不互通，但这是 Googlebot 从域名根爬进来的唯一入口。
+
+不是导航站、不是外链农场 —— 就是站长自己的索引页，三个站都是同一个人做的。
+
+## 部署
+
+第四个 Cloudflare Pages 项目，构建命令留空，**输出目录 `public`**，
+然后在 Custom domains 里绑 `9990708.xyz`（裸域名本身，不带 www）。
+
+没有仓库也能发：Pages → 创建项目 → 直接上传 `public/` 目录。
+或者用 wrangler：
+
+```bash
+npx wrangler pages deploy public --project-name=home
+```
+
+## 怎么加一个项目
+
+`public/index.html` 里 `.grid` 下面整块复制一张 `<li><a class="card">`，改五处：
+编号（`01 / PHONES` 这种）、中文标题、英文副标题、两行说明、标签、链接。
+网格是 `auto-fit minmax(300px,1fr))`，几张卡都不用动 CSS。
+最后那张虚线的「下一个在做了」是占位卡，项目多到排满了就把它删掉。
+
+## 卡片排序
+
+每张卡片右上角有个拖拽手柄（悬停才显形），拖它改顺序；手柄聚焦后按方向键也能移动。
+顺序存在访客自己浏览器的 localStorage（键 `cardOrder`），**只影响他自己**，
+HTML 源码里的顺序不动 —— 搜索引擎看的是源码那一份。
+排过序后顶栏会出现「恢复默认顺序」。
+
+加新卡片时要给 `<li>` 一个 `data-id`，和手柄一起加。
+已经排过序的访客，他存的顺序里没有这个新 id，新卡片会接在他排好的那些后面，
+不会莫名其妙插到最前面（`apply()` 里专门处理了这件事）。
+
+## 怎么加 / 改一套配色
+
+每套配色只是同一组 CSS 变量的不同取值。在 `<style>` 顶部 PALETTES 那段加一个
+`:root[data-palette="名字"]{…}`，变量名照抄现有的那套（`--bg --bg2 --card --card2
+--text --muted --line --accent --accent2 --shadow --color-scheme`），
+再到 body 里 `.swatches` 加一个按钮：`data-p="名字"`、`style="--sw:主色"`、`title`/`aria-label` 填中文名。
+
+现有五套：午夜（默认深色）、深蓝、紫夜、琥珀、纸白（浅色）。
+没选过配色时按系统深浅给默认；选过之后记在浏览器 localStorage 里，下次打开还是那套。
+`<head>` 里那段内联脚本负责在首屏绘制前把配色定下来，**不能挪到文件末尾**，否则会闪一下。
+
+## 改了内容之后
+
+`public/sitemap.xml` 的 `lastmod` 改成当天。加了新站就在 `index.html` 里加一张卡片，
+中英各一句 —— 三个站都是中英双语，这一页也保持一致。

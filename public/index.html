@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>9990708.xyz｜免费网页小工具合集：国际区号、日本税费、澳洲税务身份</title>
+<meta name="description" content="自建的免费网页工具合集：国际电话区号与拨号方式、在日本的工资税费计算、澳洲税务居民身份判定。不用注册，每个数字都标注官方出处。">
+<link rel="canonical" href="https://9990708.xyz/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="9990708.xyz｜免费网页小工具合集">
+<meta property="og:description" content="国际电话区号、在日本的工资税费、澳洲税务居民身份判定。不用注册，数据标注官方出处。">
+<meta property="og:url" content="https://9990708.xyz/">
+<meta name="theme-color" content="#07090c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230d1117'/%3E%3Ctext x='16' y='22' font-size='16' font-family='monospace' fill='%234ade9b' text-anchor='middle'%3E9%3C/text%3E%3C/svg%3E">
+
+<script>
+/* 主题要在首屏绘制前定好，否则会先闪一下默认色再跳到用户选的那套。
+   所以这段内联在 <head>，不能挪到文件末尾。
+   localStorage 在隐私模式或禁用 Cookie 时会直接抛异常，一律 try 包住；
+   读不到就用默认，页面照常能看。 */
+(function () {
+  try {
+    var p = localStorage.getItem('palette');
+    if (p) document.documentElement.setAttribute('data-palette', p);
+  } catch (e) {}
+})();
+</script>
+
+<style>
+/* =============================================================
+   9990708.xyz 域名首页 —— 小项目合集
+   整站一个文件，不引任何外部资源（字体、脚本、图片都没有）。
+
+   加新项目：在 .grid 里复制一张 <li><a class="card"> 卡片，改编号、
+   标题、说明、标签、链接。网格自适应，几张都不用动 CSS。
+
+   换 / 加配色：在下面 PALETTES 那一段加一个 [data-palette="名字"] 块，
+   再到 body 底部的 .swatches 里加一个对应的按钮。变量名保持一致即可。
+   ============================================================= */
+
+/* ---------- PALETTES：每套配色只是同一组变量的不同取值 ---------- */
+:root,
+:root[data-palette="midnight"]{           /* 午夜 · 默认 */
+  --bg:#07090c; --bg2:#0a0d12; --card:#0d1117; --card2:#11161e;
+  --text:#e9eef4; --muted:#8b98a6; --line:#1b2330;
+  --accent:#4ade9b; --accent2:#38bdf8; --shadow:rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+:root[data-palette="cobalt"]{             /* 深蓝 */
+  --bg:#050a16; --bg2:#070e1d; --card:#0b1425; --card2:#0e1a2f;
+  --text:#e6edf8; --muted:#8394ad; --line:#16243c;
+  --accent:#5b9cff; --accent2:#22d3ee; --shadow:rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+:root[data-palette="violet"]{             /* 紫夜 */
+  --bg:#090710; --bg2:#0d0a17; --card:#120e1f; --card2:#171227;
+  --text:#ece7f6; --muted:#9a8fb0; --line:#241c3a;
+  --accent:#b98cff; --accent2:#f472b6; --shadow:rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+:root[data-palette="amber"]{              /* 琥珀 */
+  --bg:#0a0908; --bg2:#0e0c0a; --card:#14110d; --card2:#1a1611;
+  --text:#f2ece2; --muted:#a29683; --line:#2a2318;
+  --accent:#f0b429; --accent2:#fb923c; --shadow:rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+:root[data-palette="paper"]{              /* 纸白 · 浅色 */
+  --bg:#f7f6f3; --bg2:#eeece7; --card:#ffffff; --card2:#faf9f6;
+  --text:#14181c; --muted:#5f6b76; --line:#e2dfd7;
+  --accent:#0f766e; --accent2:#2563eb; --shadow:rgba(20,24,28,.14);
+  color-scheme:light;
+}
+/* 没选过配色、且系统是浅色时，默认给纸白。选过就以选的为准（上面那段脚本已写好属性） */
+@media (prefers-color-scheme:light){
+  :root:not([data-palette]){
+    --bg:#f7f6f3; --bg2:#eeece7; --card:#ffffff; --card2:#faf9f6;
+    --text:#14181c; --muted:#5f6b76; --line:#e2dfd7;
+    --accent:#0f766e; --accent2:#2563eb; --shadow:rgba(20,24,28,.14);
+  }
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100vh;background:var(--bg);color:var(--text);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans CJK SC","Microsoft YaHei",sans-serif;
+  position:relative;overflow-x:hidden;
+  transition:background-color .35s ease,color .35s ease;
+}
+/* 背景：细网格 + 顶部两团柔光。纯 CSS，无动画 */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-2;
+  background:
+    radial-gradient(680px 420px at 50% -10%, color-mix(in srgb,var(--accent) 16%,transparent), transparent 70%),
+    radial-gradient(520px 360px at 88% 6%, color-mix(in srgb,var(--accent2) 12%,transparent), transparent 72%),
+    linear-gradient(180deg,var(--bg2),var(--bg) 46%);
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:-1;opacity:.55;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:72px 72px;
+  -webkit-mask-image:radial-gradient(circle at 50% 8%, #000, transparent 72%);
+          mask-image:radial-gradient(circle at 50% 8%, #000, transparent 72%);
+}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px 84px}
+
+/* ---------- 右上角：配色切换 ---------- */
+.bar{
+  position:sticky;top:0;z-index:5;display:flex;justify-content:flex-end;align-items:center;gap:10px;
+  padding:16px 0 0;pointer-events:none;flex-wrap:wrap;
+}
+.swatches{
+  display:flex;gap:8px;padding:8px;border-radius:999px;pointer-events:auto;
+  border:1px solid var(--line);background:color-mix(in srgb,var(--card) 88%,transparent);
+  backdrop-filter:blur(10px);
+}
+.swatches button{
+  width:22px;height:22px;padding:0;border-radius:50%;cursor:pointer;
+  border:1px solid var(--line);background:var(--sw);
+  transition:transform .15s ease,box-shadow .15s ease;
+}
+.swatches button:hover{transform:scale(1.14)}
+.swatches button[aria-pressed="true"]{
+  box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent);
+}
+.swatches button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* ---------- 顶部 ---------- */
+header{text-align:center;padding:52px 0 16px}
+.mark{
+  width:78px;height:78px;margin:0 auto 26px;border-radius:50%;
+  display:grid;place-items:center;border:1px solid var(--line);
+  background:linear-gradient(150deg,var(--card2),var(--card));
+  font:700 30px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color:var(--accent);box-shadow:0 0 0 8px color-mix(in srgb,var(--accent) 8%,transparent);
+}
+.kicker{
+  margin:0;font:600 12.5px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  letter-spacing:.22em;color:var(--muted);text-transform:uppercase;
+}
+h1{
+  margin:20px 0 14px;font-size:clamp(40px,9vw,78px);line-height:1.02;
+  letter-spacing:-.035em;font-weight:800;
+  background:linear-gradient(180deg,var(--text),color-mix(in srgb,var(--text) 55%,var(--bg)));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.tagline{margin:0 auto;max-width:56ch;color:var(--muted);font-size:clamp(14.5px,2.2vw,16.5px)}
+.tagline .en{display:block;margin-top:6px;font-size:.92em;opacity:.8}
+.stats{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:8px;
+  margin:28px 0 0;padding:0;list-style:none;
+}
+.stats li{
+  padding:7px 13px;border:1px solid var(--line);border-radius:999px;
+  background:color-mix(in srgb,var(--card) 70%,transparent);
+  font-size:13px;color:var(--muted);
+}
+.stats b{
+  color:var(--text);margin-right:5px;
+  font:700 14px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+
+/* ---------- 卡片 ---------- */
+.grid{
+  display:grid;gap:18px;margin:52px 0 0;padding:0;list-style:none;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+}
+.grid > li{position:relative}
+
+/* ---------- 拖拽手柄 ----------
+   为什么不直接拖整张卡片：卡片本身是链接，按住拖会和「点开」抢手势，
+   触屏上还会和页面滚动打架。单独给一个手柄，两边都清爽。 */
+.grip{
+  position:absolute;top:14px;right:14px;z-index:2;
+  width:30px;height:30px;padding:0;border-radius:9px;display:grid;place-items:center;
+  border:1px solid transparent;background:none;color:var(--muted);
+  cursor:grab;opacity:.4;transition:opacity .2s ease,background-color .2s ease;
+  touch-action:none;   /* 手柄上按住就是拖卡片，不要触发页面滚动 */
+}
+.grid > li:hover .grip,.grip:focus-visible{opacity:1}
+/* 手柄平时也留个淡影，不然没人知道能拖 */
+.grip:hover{background:color-mix(in srgb,var(--accent) 12%,transparent);border-color:var(--line)}
+.grip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.grip svg{width:15px;height:15px;fill:currentColor}
+.grid > li.dragging{z-index:3}
+.grid > li.dragging .grip{opacity:1;cursor:grabbing}
+/* 拖动中，其余卡片让出位置的那一下要看得见 */
+@media (prefers-reduced-motion:no-preference){
+  /* 让位慢一点才看得清谁去了哪 —— 0.22 秒太快，像在闪 */
+  .grid.sorting > li:not(.dragging){transition:transform .34s cubic-bezier(.2,.8,.25,1)}
+}
+
+/* 跟着指针走的那张（原卡片的拷贝）。原卡片留在格子里当占位 */
+.drag-ghost{
+  position:fixed;z-index:60;pointer-events:none;
+  /* 外层只管跟着指针平移（JS 写 transform），倾斜和放大放在里层卡片上，
+     两者分开才不会互相覆盖 */
+  filter:drop-shadow(0 28px 44px var(--shadow));
+}
+.drag-ghost .card{height:100%;transform:rotate(1.4deg) scale(1.03);
+  border-color:color-mix(in srgb,var(--accent) 65%,var(--line));}
+.drag-ghost.dropping{transition:transform .26s cubic-bezier(.2,.8,.25,1)}
+body.is-dragging{cursor:grabbing;user-select:none}
+/* 占位：原地留个淡淡的影子，让人知道松手会落在哪 */
+.grid > li.dragging .card{
+  opacity:.22;transform:none;box-shadow:none;
+  border-style:dashed;border-color:color-mix(in srgb,var(--accent) 45%,var(--line));
+}
+.reset-order{
+  display:none;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;
+  border:1px solid var(--line);background:color-mix(in srgb,var(--card) 88%,transparent);
+  backdrop-filter:blur(10px);color:var(--muted);font-size:12.5px;cursor:pointer;
+  pointer-events:auto;
+}
+.reset-order:hover{color:var(--text);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.reset-order.show{display:inline-flex}
+.hint{
+  margin:14px 0 0;text-align:center;color:var(--muted);font-size:12.5px;opacity:.75;
+}
+.card{
+  position:relative;display:flex;flex-direction:column;height:100%;
+  min-height:206px;padding:26px 24px 22px;border:1px solid var(--line);
+  border-radius:18px;text-decoration:none;color:inherit;overflow:hidden;
+  background:linear-gradient(160deg,var(--card2),var(--card));
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.card::before{                       /* 顶边那道渐变线，悬停才拉满 */
+  content:"";position:absolute;inset:0 0 auto;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transform:scaleX(0);transform-origin:left;transition:transform .3s ease;
+}
+.card::after{                        /* 右上角的一团光晕 */
+  content:"";position:absolute;top:-70px;right:-70px;width:180px;height:180px;
+  border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 22%,transparent),transparent 70%);
+  opacity:0;transition:opacity .3s ease;
+}
+.card:hover,.card:focus-visible{
+  transform:translateY(-4px);
+  border-color:color-mix(in srgb,var(--accent) 50%,var(--line));
+  box-shadow:0 20px 44px -26px var(--shadow);
+}
+.card:hover::before,.card:focus-visible::before{transform:scaleX(1)}
+.card:hover::after,.card:focus-visible::after{opacity:1}
+.num{
+  font:600 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  letter-spacing:.16em;color:var(--muted);
+}
+.card h2{margin:18px 0 4px;font-size:24px;line-height:1.25;letter-spacing:-.015em;font-weight:700}
+.card .en-title{
+  display:block;margin-top:4px;color:var(--muted);
+  font:500 13px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.02em;
+}
+.card p{margin:12px 0 0;color:var(--muted);font-size:14.5px}
+.card p.en{margin-top:5px;font-size:12.8px;opacity:.8}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0;padding:0;list-style:none}
+.tags li{
+  padding:4px 10px;border-radius:999px;color:var(--muted);
+  border:1px solid var(--line);background:color-mix(in srgb,var(--bg) 40%,transparent);
+  font:500 11.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+.go{margin-top:auto;padding-top:18px;color:var(--accent);font-size:14px;font-weight:600}
+.go::after{content:" →";display:inline-block;transition:transform .2s ease}
+.card:hover .go::after{transform:translateX(4px)}
+
+/* 占位卡：说明这个合集还会长。加新站时整张换成上面那种真卡片 */
+.card.soon{
+  background:none;border-style:dashed;cursor:default;justify-content:center;
+}
+.card.soon:hover{transform:none;box-shadow:none;border-color:var(--line)}
+.card.soon:hover::before{transform:scaleX(0)}
+.card.soon:hover::after{opacity:0}
+.card.soon h2{font-size:19px;color:var(--muted);margin-top:10px}
+
+footer{
+  margin-top:56px;padding-top:24px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:13px;line-height:1.75;text-align:center;
+}
+
+/* 进场动画：卡片滚到视野里淡入。关掉动画偏好时不做 */
+@media (prefers-reduced-motion:no-preference){
+  .grid > li{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}
+  .grid > li.in{opacity:1;transform:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:560px){
+  header{padding-top:28px}
+  .card{min-height:0;padding:22px 20px 18px}
+  .card h2{font-size:21px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="bar">
+    <!-- 每个按钮的 --sw 就是那套配色的主色，直接当色板看 -->
+    <button class="reset-order" type="button" id="resetOrder">恢复默认顺序</button>
+    <div class="swatches" role="group" aria-label="配色">
+      <button type="button" data-p="midnight" style="--sw:#4ade9b" title="午夜" aria-label="午夜"></button>
+      <button type="button" data-p="cobalt"   style="--sw:#5b9cff" title="深蓝" aria-label="深蓝"></button>
+      <button type="button" data-p="violet"   style="--sw:#b98cff" title="紫夜" aria-label="紫夜"></button>
+      <button type="button" data-p="amber"    style="--sw:#f0b429" title="琥珀" aria-label="琥珀"></button>
+      <button type="button" data-p="paper"    style="--sw:#0f766e" title="纸白" aria-label="纸白"></button>
+    </div>
+  </div>
+
+  <header>
+    <div class="mark">9</div>
+    <p class="kicker">PHONES · JPTAX · AUTAX</p>
+    <h1>9990708</h1>
+    <p class="tagline">
+      自己做的网页小工具合集。不用注册、不收费、不存你的数据，每个数字都标注官方出处和适用年度。
+      <span class="en">A small collection of free web tools. No sign-up, nothing stored, every figure cites its official source.</span>
+    </p>
+    <ul class="stats">
+      <li><b>3</b>个在跑的站</li>
+      <li><b>136</b>个国家和地区</li>
+      <li><b>2</b>套税务计算</li>
+      <li><b>每月</b>核对一次官方来源</li>
+    </ul>
+  </header>
+
+  <main>
+    <ul class="grid">
+      <!-- 加新项目：整块复制，改编号 / 标题 / 说明 / 标签 / 链接 -->
+      <li data-id="phones"><a class="card" href="https://phones.9990708.xyz/">
+        <span class="num">01 / PHONES</span>
+        <h2>国际电话区号<span class="en-title">Country calling codes</span></h2>
+        <p>136 个国家和地区的区号、号码位数、怎么从国内拨出去，还有当地运营商和号段。</p>
+        <p class="en">Dialling codes, number formats, how to dial, and local carriers.</p>
+        <ul class="tags"><li>区号</li><li>号段</li><li>运营商</li><li>中 / EN</li></ul>
+        <span class="go">打开</span>
+      </a><button class="grip" type="button" aria-label="拖动排序：国际电话区号" title="拖动排序（也可用方向键）"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg></button></li>
+
+      <li data-id="jptax"><a class="card" href="https://jptax.9990708.xyz/">
+        <span class="num">02 / JPTAX</span>
+        <h2>在日计算器<span class="en-title">Japan salary &amp; tax</span></h2>
+        <p>在日本的工资到手、所得税与住民税、脱退一時金、ふるさと納税上限、高度人才积分。</p>
+        <p class="en">Take-home pay, income and residence tax, lump-sum withdrawal, furusato nozei.</p>
+        <ul class="tags"><li>令和8年度</li><li>47 都道府县</li><li>中文</li></ul>
+        <span class="go">打开</span>
+      </a><button class="grip" type="button" aria-label="拖动排序：在日计算器" title="拖动排序（也可用方向键）"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg></button></li>
+
+      <li data-id="autax"><a class="card" href="https://autax.9990708.xyz/">
+        <span class="num">03 / AUTAX</span>
+        <h2>澳洲税务身份<span class="en-title">Australian tax residency</span></h2>
+        <p>算你算不算澳洲税务居民，以及这个身份连带影响的税率、Medicare、卖房预扣和养老金退款。</p>
+        <p class="en">Your residency status, and what it changes for rates, Medicare, CGT and super.</p>
+        <ul class="tags"><li>2026–27</li><li>四个测试</li><li>中 / EN</li></ul>
+        <span class="go">打开</span>
+      </a><button class="grip" type="button" aria-label="拖动排序：澳洲税务身份" title="拖动排序（也可用方向键）"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg></button></li>
+
+      <li data-id="soon"><div class="card soon">
+        <span class="num">04 / 待定</span>
+        <h2>下一个在做了<span class="en-title">Next one in progress</span></h2>
+      </div><button class="grip" type="button" aria-label="拖动排序：占位卡" title="拖动排序（也可用方向键）"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5" cy="3" r="1.5"/><circle cx="11" cy="3" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11" cy="13" r="1.5"/></svg></button></li>
+    </ul>
+    <p class="hint">卡片右上角的手柄可以拖动排序，顺序只存在你自己的浏览器里。</p>
+  </main>
+
+  <footer>
+    都是个人业余做的，只提供一般性信息，<strong>不构成税务或法律建议</strong>；涉及金额的决定请找有资质的人。<br>
+    Personal side projects. General information only — not tax or legal advice.
+  </footer>
+</div>
+
+<script>
+/* ---------- 卡片排序 ----------
+   拖手柄改顺序，顺序记在本人浏览器里，别人看到的还是默认顺序。
+   HTML 里的顺序不动 —— 搜索引擎看的是源码那一份。
+   键盘也能排：手柄聚焦后按方向键左右/上下移动。 */
+(function () {
+  var grid = document.querySelector('.grid');
+  var reset = document.getElementById('resetOrder');
+  if (!grid) return;
+  var KEY = 'cardOrder';
+  var DEFAULT = [].map.call(grid.children, function (li) { return li.dataset.id; });
+
+  function read() {
+    try { var v = localStorage.getItem(KEY); return v ? v.split(',') : null; } catch (e) { return null; }
+  }
+  function save() {
+    var ids = [].map.call(grid.children, function (li) { return li.dataset.id; });
+    var custom = ids.join(',') !== DEFAULT.join(',');
+    try { custom ? localStorage.setItem(KEY, ids.join(',')) : localStorage.removeItem(KEY); } catch (e) {}
+    reset.classList.toggle('show', custom);
+  }
+  /* 存的顺序可能是旧的：有新卡片（存的时候还不存在）就留在原位置，
+     有已删掉的 id 就忽略。不这么做，加一个新项目就会莫名其妙跑到最前面。 */
+  function apply(order) {
+    if (!order) return;
+    var byId = {};
+    [].forEach.call(grid.children, function (li) { byId[li.dataset.id] = li; });
+    order.forEach(function (id) { if (byId[id]) grid.appendChild(byId[id]); });
+    DEFAULT.forEach(function (id) { if (order.indexOf(id) < 0 && byId[id]) grid.appendChild(byId[id]); });
+    reset.classList.add('show');
+  }
+  apply(read());
+
+  reset.addEventListener('click', function () {
+    DEFAULT.forEach(function (id) {
+      var li = grid.querySelector('[data-id="' + id + '"]');
+      if (li) grid.appendChild(li);
+    });
+    save();
+    reset.classList.remove('show');
+  });
+
+  /* 拖到哪一张之前/之后：比指针位置和每张卡片中心 */
+  function placeAt(dragged, x, y) {
+    var items = [].filter.call(grid.children, function (li) { return li !== dragged; });
+    for (var i = 0; i < items.length; i++) {
+      var r = items[i].getBoundingClientRect();
+      var sameRow = y >= r.top && y <= r.bottom;
+      if (sameRow && x < r.left + r.width / 2) { grid.insertBefore(dragged, items[i]); return; }
+      if (sameRow && x <= r.right) { grid.insertBefore(dragged, items[i].nextSibling); return; }
+      if (y < r.top) { grid.insertBefore(dragged, items[i]); return; }
+    }
+    grid.appendChild(dragged);
+  }
+
+  /* 重排本身是瞬间的，卡片会「啪」地跳到新格子。
+     所以先记下每张卡片原来的位置，重排后把它们用 transform 拉回原处，
+     下一帧再放开 —— 于是看到的是滑过去，不是跳过去。 */
+  function flip(reorder) {
+    var kids = [].slice.call(grid.children);
+    var before = kids.map(function (el) { return el.getBoundingClientRect(); });
+    reorder();
+    kids.forEach(function (el, i) {
+      if (el.classList.contains('dragging')) return;
+      var now = el.getBoundingClientRect();
+      var dx = before[i].left - now.left, dy = before[i].top - now.top;
+      if (!dx && !dy) return;
+      el.style.transition = 'none';
+      el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+      requestAnimationFrame(function () {
+        el.style.transition = '';
+        el.style.transform = '';
+      });
+    });
+  }
+
+  [].forEach.call(grid.querySelectorAll('.grip'), function (grip) {
+    var li = grip.closest('li');
+
+    grip.addEventListener('pointerdown', function (ev) {
+      if (ev.button !== undefined && ev.button !== 0) return;
+      ev.preventDefault();
+
+      var card = li.querySelector('.card');
+      var start = card.getBoundingClientRect();
+      var offX = ev.clientX - start.left;     // 抓住的是卡片上的哪个点，松手前一直保持
+      var offY = ev.clientY - start.top;
+
+      /* 跟手的那张：原卡片的一份拷贝，脱离网格、贴在指针上走。
+         原位置留着当占位，网格不会塌陷，其他卡片才有地方可让。 */
+      var ghost = document.createElement('div');
+      ghost.className = 'drag-ghost';
+      ghost.style.width = start.width + 'px';
+      ghost.style.height = start.height + 'px';
+      ghost.style.left = start.left + 'px';
+      ghost.style.top = start.top + 'px';
+      ghost.appendChild(card.cloneNode(true));
+      document.body.appendChild(ghost);
+
+      li.classList.add('dragging');
+      grid.classList.add('sorting');
+      document.body.classList.add('is-dragging');
+
+      var lastX = ev.clientX, lastY = ev.clientY, queued = false;
+
+      /* 每帧最多重排一次：pointermove 一秒能来上百个，
+         每个都去量所有卡片的位置，既费又会抖。 */
+      function frame() {
+        queued = false;
+        flip(function () { placeAt(li, lastX, lastY); });
+      }
+
+      /* 监听挂在 document 上，**不能**用 setPointerCapture：
+         拖动时这张卡会被 insertBefore 移走再插回来，元素一离开文档，
+         捕获就被释放，后续 pointermove 全跟丢 —— 表现就是「拖不动」。 */
+      function move(e) {
+        e.preventDefault();
+        lastX = e.clientX; lastY = e.clientY;
+        ghost.style.transform = 'translate(' + (e.clientX - offX - start.left) + 'px,' +
+                                (e.clientY - offY - start.top) + 'px)';
+        if (!queued) { queued = true; requestAnimationFrame(frame); }
+      }
+
+      function up() {
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', up);
+        document.removeEventListener('pointercancel', up);
+
+        /* 松手不是啪地消失：让拷贝滑回卡片现在该在的格子，再交回原卡片 */
+        var end = li.getBoundingClientRect();
+        ghost.classList.add('dropping');
+        ghost.style.transform = 'translate(' + (end.left - start.left) + 'px,' +
+                                (end.top - start.top) + 'px)';
+        var done = false;
+        function finish() {
+          if (done) return;
+          done = true;
+          ghost.remove();
+          li.classList.remove('dragging');
+          grid.classList.remove('sorting');
+          document.body.classList.remove('is-dragging');
+        }
+        ghost.addEventListener('transitionend', finish);
+        setTimeout(finish, 320);   // 没有过渡（比如关了动效）也要收尾
+        save();
+      }
+
+      document.addEventListener('pointermove', move, { passive: false });
+      document.addEventListener('pointerup', up);
+      document.addEventListener('pointercancel', up);
+    });
+
+    grip.addEventListener('keydown', function (ev) {
+      var back = ev.key === 'ArrowLeft' || ev.key === 'ArrowUp';
+      var fwd = ev.key === 'ArrowRight' || ev.key === 'ArrowDown';
+      if (!back && !fwd) return;
+      ev.preventDefault();
+      if (back && li.previousElementSibling) grid.insertBefore(li, li.previousElementSibling);
+      if (fwd && li.nextElementSibling) grid.insertBefore(li.nextElementSibling, li);
+      grip.focus();
+      save();
+    });
+  });
+})();
+
+/* ---------- 配色切换 ---------- */
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll('.swatches button');
+
+  function mark(p) {
+    btns.forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.p === p));
+    });
+  }
+  /* 没选过的时候，按系统深浅高亮对应的那一套，别让五个点都是灰的 */
+  var cur = root.getAttribute('data-palette');
+  if (!cur) {
+    cur = matchMedia('(prefers-color-scheme: light)').matches ? 'paper' : 'midnight';
+  }
+  mark(cur);
+
+  btns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var p = b.dataset.p;
+      root.setAttribute('data-palette', p);
+      mark(p);
+      /* 存不进去也无所谓 —— 只是下次打开回到默认，页面功能不受影响 */
+      try { localStorage.setItem('palette', p); } catch (e) {}
+    });
+  });
+})();
+
+/* ---------- 卡片进场 ---------- */
+(function () {
+  /* 只取直接子元素 —— '.grid li' 会连卡片里的标签 <li> 一起选中 */
+  var items = document.querySelectorAll('.grid > li');
+  if (!('IntersectionObserver' in window) ||
+      matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    items.forEach(function (li) { li.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e, i) {
+      if (!e.isIntersecting) return;
+      /* 同屏的卡片依次亮起，差 70ms，够看出顺序又不拖沓 */
+      setTimeout(function () { e.target.classList.add('in'); }, i * 70);
+      io.unobserve(e.target);
+    });
+  }, { rootMargin: '0px 0px -8% 0px' });
+  items.forEach(function (li) { io.observe(li); });
+
+  /* 兜底：窗口被最小化、页面不重绘时观察器不会触发，卡片会一直停在透明。
+     1.2 秒后无条件显示 —— 动画是锦上添花，内容看不见才是事故。 */
+  setTimeout(function () {
+    items.forEach(function (li) { li.classList.add('in'); });
+  }, 1200);
+})();
+</script>
+</body>
+</html>

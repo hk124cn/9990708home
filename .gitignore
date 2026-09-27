@@ -1,0 +1,9 @@
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# 给 Claude Code 的本地说明，不进仓库
+CLAUDE.md
