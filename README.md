@@ -20,6 +20,13 @@
 npx wrangler pages deploy public --project-name=home
 ```
 
+## 两个部署上的坑
+
+1. **构建输出目录必须填 `public`**，构建命令留空。留空输出目录 = 仓库根目录当网站，
+   `/` 会 404，而 `/README.md`、`/public/` 这些能打开（2026-09-27 实际踩过）。
+2. **`public/404.html` 不能删。** Pages 在站点没有 404 页时，会给任何不存在的路径
+   返回 200 + 首页 —— 对搜索引擎就是软 404，无数网址内容相同还都报正常，会被判重复内容。
+
 ## 怎么加一个项目
 
 `public/index.html` 里 `.grid` 下面整块复制一张 `<li><a class="card">`，改五处：
